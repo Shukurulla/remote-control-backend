@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>📱 SMM Bot — Admin Panel</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0f172a;
+      --surface: #1e293b;
+      --surface2: #263347;
+      --border: #334155;
+      --accent: #6366f1;
+      --accent2: #818cf8;
+      --green: #22c55e;
+      --red: #ef4444;
+      --yellow: #f59e0b;
+      --text: #f1f5f9;
+      --muted: #94a3b8;
+      --tg: #2AABEE;
+      --ig: #E4405F;
+      --wa: #25D366;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    /* ===== LOGIN ===== */
+    #loginPage {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      background: radial-gradient(ellipse at 50% 0%, #1e1b4b 0%, #0f172a 70%);
+    }
+    .login-box {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 48px 40px;
+      width: 100%;
+      max-width: 420px;
+      box-shadow: 0 25px 50px rgba(0,0,0,0.4);
+    }
+    .login-box h1 { font-size: 28px; font-weight: 700; margin-bottom: 8px; }
+    .login-box p { color: var(--muted); margin-bottom: 32px; }
+    .form-group { margin-bottom: 16px; }
+    .form-group label { display: block; font-size: 13px; font-weight: 500; color: var(--muted); margin-bottom: 6px; }
+    .form-group input {
+      width: 100%;
+      padding: 12px 16px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      color: var(--text);
+      font-size: 15px;
+      font-family: inherit;
+      outline: none;
+      transition: border-color .2s;
+    }
+    .form-group input:focus { border-color: var(--accent); }
+    .btn {
+      padding: 12px 24px;
+      border: none;
+      border-radius: 12px;
+      font-size: 14px;
+      font-weight: 600;
+      font-family: inherit;
+      cursor: pointer;
+      transition: all .2s;
+    }
+    .btn-primary { background: var(--accent); color: #fff; width: 100%; margin-top: 8px; }
+    .btn-primary:hover { background: #4f46e5; transform: translateY(-1px); }
+    .btn-danger { background: rgba(239,68,68,.15); color: var(--red); border: 1px solid rgba(239,68,68,.3); }
+    .btn-danger:hover { background: rgba(239,68,68,.25); }
+    .btn-sm { padding: 8px 16px; font-size: 13px; }
+
+    /* ===== LAYOUT ===== */
+    #dashboard { display: none; }
+    #dashboard.active { display: flex; flex-direction: column; min-height: 100vh; }
+
+    header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 16px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .logo { display: flex; align-items: center; gap: 10px; font-size: 18px; font-weight: 700; }
+    .logo span { background: var(--accent); border-radius: 10px; padding: 6px 10px; font-size: 14px; }
+    .header-right { display: flex; align-items: center; gap: 12px; }
+    .user-badge { font-size: 13px; color: var(--muted); }
+
+    main {
+      display: grid;
+      grid-template-columns: 300px 1fr;
+      gap: 0;
+      flex: 1;
+    }
+
+    /* ===== SIDEBAR ===== */
+    .sidebar {
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      padding: 20px;
+      overflow-y: auto;
+      height: calc(100vh - 65px);
+      position: sticky;
+      top: 65px;
+    }
+    .sidebar-title {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--muted);
+      margin-bottom: 12px;
+    }
+    .stats-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 20px; }
+    .stat-mini {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px;
+      text-align: center;
+    }
+    .stat-mini .val { font-size: 22px; font-weight: 700; }
+    .stat-mini .lbl { font-size: 11px; color: var(--muted); margin-top: 2px; }
+    .val.online { color: var(--green); }
+
+    .device-list { display: flex; flex-direction: column; gap: 8px; }
+    .device-item {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      cursor: pointer;
+      transition: all .2s;
+    }
+    .device-item:hover { border-color: var(--accent); }
+    .device-item.selected { border-color: var(--accent); background: rgba(99,102,241,.1); }
+    .device-item.offline { opacity: 0.5; cursor: default; }
+    .device-name { font-weight: 600; font-size: 14px; margin-bottom: 4px; }
+    .device-meta { font-size: 12px; color: var(--muted); }
+    .status-dot {
+      display: inline-block;
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      margin-right: 5px;
+    }
+    .status-dot.online { background: var(--green); box-shadow: 0 0 6px var(--green); }
+    .status-dot.offline { background: var(--muted); }
+
+    .select-all-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+    .checkbox-label { display: flex; align-items: center; gap: 6px; font-size: 13px; cursor: pointer; }
+    .checkbox-label input[type="checkbox"] { width: 15px; height: 15px; accent-color: var(--accent); cursor: pointer; }
+
+    /* ===== CONTENT ===== */
+    .content { padding: 24px; overflow-y: auto; }
+
+    .section {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px;
+      margin-bottom: 20px;
+    }
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    .section-icon {
+      width: 38px; height: 38px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+    }
+    .section-header h2 { font-size: 17px; font-weight: 600; }
+    .section-header p { font-size: 12px; color: var(--muted); margin-top: 2px; }
+
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .form-field { margin-bottom: 14px; }
+    .form-field label { display: block; font-size: 13px; color: var(--muted); margin-bottom: 6px; font-weight: 500; }
+    .form-field input, .form-field textarea, .form-field select {
+      width: 100%;
+      padding: 11px 14px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      color: var(--text);
+      font-size: 14px;
+      font-family: inherit;
+      outline: none;
+      transition: border-color .2s;
+    }
+    .form-field input:focus, .form-field textarea:focus, .form-field select:focus { border-color: var(--accent); }
+    .form-field textarea { resize: vertical; min-height: 80px; }
+
+    .platform-tabs { display: flex; gap: 8px; margin-bottom: 16px; }
+    .platform-tab {
+      padding: 8px 18px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      border: 2px solid var(--border);
+      background: transparent;
+      color: var(--muted);
+      font-family: inherit;
+      transition: all .2s;
+    }
+    .platform-tab.tg.active { border-color: var(--tg); color: var(--tg); background: rgba(42,171,238,.1); }
+    .platform-tab.ig.active { border-color: var(--ig); color: var(--ig); background: rgba(228,64,95,.1); }
+    .platform-tab.wa.active { border-color: var(--wa); color: var(--wa); background: rgba(37,211,102,.1); }
+
+    .send-btn {
+      padding: 13px 28px;
+      border: none;
+      border-radius: 12px;
+      font-size: 14px;
+      font-weight: 600;
+      font-family: inherit;
+      cursor: pointer;
+      transition: all .2s;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .send-btn:hover { transform: translateY(-1px); }
+    .send-btn.tg { background: var(--tg); color: #fff; }
+    .send-btn.ig { background: linear-gradient(135deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888); color: #fff; }
+    .send-btn.wa { background: var(--wa); color: #fff; }
+
+    /* ===== HISTORY ===== */
+    .history-list { display: flex; flex-direction: column; gap: 8px; max-height: 350px; overflow-y: auto; }
+    .history-item {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px 14px;
+      display: grid;
+      grid-template-columns: 1fr auto auto;
+      gap: 8px;
+      align-items: start;
+    }
+    .hi-command { font-size: 13px; font-weight: 600; }
+    .hi-params { font-size: 11px; color: var(--muted); margin-top: 3px; }
+    .hi-status {
+      font-size: 11px;
+      font-weight: 600;
+      padding: 3px 8px;
+      border-radius: 20px;
+    }
+    .hi-status.executed { background: rgba(34,197,94,.15); color: var(--green); }
+    .hi-status.failed { background: rgba(239,68,68,.15); color: var(--red); }
+    .hi-status.pending { background: rgba(245,158,11,.15); color: var(--yellow); }
+    .hi-time { font-size: 11px; color: var(--muted); }
+
+    /* ===== TOAST ===== */
+    .toast-container { position: fixed; bottom: 24px; right: 24px; display: flex; flex-direction: column; gap: 8px; z-index: 9999; }
+    .toast {
+      padding: 12px 20px;
+      border-radius: 12px;
+      font-size: 14px;
+      font-weight: 500;
+      animation: slideIn .3s ease;
+      max-width: 300px;
+    }
+    .toast.success { background: rgba(34,197,94,.15); border: 1px solid rgba(34,197,94,.4); color: var(--green); }
+    .toast.error { background: rgba(239,68,68,.15); border: 1px solid rgba(239,68,68,.4); color: var(--red); }
+    .toast.info { background: rgba(99,102,241,.15); border: 1px solid rgba(99,102,241,.4); color: var(--accent2); }
+    @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: none; opacity: 1; } }
+
+    .no-device-hint {
+      text-align: center;
+      color: var(--muted);
+      padding: 32px;
+      font-size: 14px;
+    }
+
+    .bulk-info {
+      background: rgba(99,102,241,.1);
+      border: 1px solid rgba(99,102,241,.3);
+      border-radius: 10px;
+      padding: 10px 14px;
+      font-size: 13px;
+      color: var(--accent2);
+      margin-bottom: 14px;
+    }
+  </style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="loginPage">
+  <div class="login-box">
+    <h1>📱 SMM Bot</h1>
+    <p>Admin paneliga kirish</p>
+    <form id="loginForm">
+      <div class="form-group">
+        <label>Username</label>
+        <input type="text" id="username" required autocomplete="username" placeholder="admin">
+      </div>
+      <div class="form-group">
+        <label>Parol</label>
+        <input type="password" id="password" required autocomplete="current-password" placeholder="••••••">
+      </div>
+      <button type="submit" class="btn btn-primary">🚀 Kirish</button>
+    </form>
+  </div>
+</div>
+
+<!-- DASHBOARD -->
+<div id="dashboard">
+  <header>
+    <div class="logo">
+      <span>📱</span>
+      SMM Bot Panel
+    </div>
+    <div class="header-right">
+      <span class="user-badge" id="adminName">Admin</span>
+      <button id="logoutBtn" class="btn btn-danger btn-sm">Chiqish</button>
+    </div>
+  </header>
+
+  <main>
+    <!-- SIDEBAR: Devices -->
+    <aside class="sidebar">
+      <div class="sidebar-title">Statistika</div>
+      <div class="stats-row">
+        <div class="stat-mini">
+          <div class="val" id="totalDevices">0</div>
+          <div class="lbl">Jami</div>
+        </div>
+        <div class="stat-mini">
+          <div class="val online" id="onlineDevices">0</div>
+          <div class="lbl">Online</div>
+        </div>
+      </div>
+
+      <div class="sidebar-title">Telefonlar</div>
+      <div class="select-all-bar">
+        <label class="checkbox-label">
+          <input type="checkbox" id="selectAll" onchange="toggleSelectAll(this)">
+          Hammasini tanlash
+        </label>
+        <span id="selectedCount" style="font-size:12px;color:var(--accent2);">0 tanlangan</span>
+      </div>
+      <div class="device-list" id="deviceList">
+        <p style="color:var(--muted);font-size:13px;">Qurilmalar yuklanmoqda...</p>
+      </div>
+    </aside>
+
+    <!-- CONTENT -->
+    <div class="content">
+
+      <!-- Telegram Comment -->
+      <div class="section">
+        <div class="section-header">
+          <div class="section-icon" style="background:rgba(42,171,238,.15);">💬</div>
+          <div>
+            <h2>Telegram — Post Izoh</h2>
+            <p>Berilgan Telegram post linkiga avtomatik komment qoldirish</p>
+          </div>
+        </div>
+        <div class="bulk-info" id="tgBulkInfo">⚡ Tanlangan qurilmalar: <b id="tgDevCount">0</b></div>
+        <div class="form-field">
+          <label>Telegram Post URL</label>
+          <input type="url" id="tgPostUrl" placeholder="https://t.me/kanalname/123">
+        </div>
+        <div class="form-field">
+          <label>Izoh matni</label>
+          <textarea id="tgCommentText" placeholder="Bu yerga izoh yozing..."></textarea>
+        </div>
+        <button class="send-btn tg" onclick="sendTelegramComment()">
+          ✈️ Barcha tanlangan telefondan yuborish
+        </button>
+      </div>
+
+      <!-- Instagram Comment -->
+      <div class="section">
+        <div class="section-header">
+          <div class="section-icon" style="background:rgba(228,64,95,.15);">📷</div>
+          <div>
+            <h2>Instagram — Post Izoh</h2>
+            <p>Berilgan Instagram post linkiga avtomatik komment qoldirish</p>
+          </div>
+        </div>
+        <div class="bulk-info">⚡ Tanlangan qurilmalar: <b id="igDevCount">0</b></div>
+        <div class="form-field">
+          <label>Instagram Post URL</label>
+          <input type="url" id="igPostUrl" placeholder="https://www.instagram.com/p/XXXXXXX/">
+        </div>
+        <div class="form-field">
+          <label>Izoh matni</label>
+          <textarea id="igCommentText" placeholder="Bu yerga komment matni yozing..."></textarea>
+        </div>
+        <button class="send-btn ig" onclick="sendInstagramComment()">
+          📸 Barcha tanlangan telefondan yuborish
+        </button>
+      </div>
+
+      <!-- AI Instagram Comment -->
+      <div class="section" style="border: 1px solid rgba(168,85,247,.4);">
+        <div class="section-header">
+          <div class="section-icon" style="background:rgba(168,85,247,.15);">🤖</div>
+          <div>
+            <h2>AI Instagram Comment</h2>
+            <p>Gemini AI har bir telefon uchun noyob, tabiiy comment yozadi</p>
+          </div>
+        </div>
+        <div class="bulk-info" style="background:rgba(168,85,247,.1);border-color:rgba(168,85,247,.3);color:#c084fc;">
+          ⚡ Tanlangan qurilmalar: <b id="aiDevCount">0</b> — har biriga alohida comment generatsiya qilinadi
+        </div>
+        <div class="form-field">
+          <label>Instagram Post URL</label>
+          <input type="url" id="aiPostUrl" placeholder="https://www.instagram.com/p/XXXXXXX/">
+        </div>
+        <div class="form-field">
+          <label>Post tavsifi (Gemini uchun)</label>
+          <textarea id="aiPostDescription" rows="4" placeholder="Masalan: Bu video Chevrolet Nexia 2 ni zamonaviy uslubda ko'rsatadi, boshqa mashinalardan farqi tushuntirilgan, nexia 2 legenda deb aytilgan..."></textarea>
+        </div>
+        <div class="form-row">
+          <div class="form-field">
+            <label>Comment tili</label>
+            <select id="aiLang" style="padding:11px 14px;background:var(--bg);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:inherit;font-size:14px;width:100%;outline:none;">
+              <option value="uz">🇺🇿 O'zbekcha</option>
+              <option value="qq">🇺🇿 Qaraqalpaqcha</option>
+              <option value="kz">🇰🇿 Qozaqcha</option>
+              <option value="ru">🇷🇺 Ruscha</option>
+            </select>
+          </div>
+          <div class="form-field">
+            <label>Comment turi</label>
+            <div style="display:flex;gap:8px;margin-top:6px;flex-wrap:wrap;">
+              <label style="display:flex;align-items:center;gap:6px;cursor:pointer;padding:9px 14px;background:rgba(34,197,94,.1);border:2px solid rgba(34,197,94,.3);border-radius:10px;font-size:13px;">
+                <input type="radio" name="aiTone" value="positive" checked style="accent-color:#22c55e;">
+                👍 Ijobiy
+              </label>
+              <label style="display:flex;align-items:center;gap:6px;cursor:pointer;padding:9px 14px;background:rgba(148,163,184,.1);border:2px solid rgba(148,163,184,.3);border-radius:10px;font-size:13px;">
+                <input type="radio" name="aiTone" value="neutral" style="accent-color:#94a3b8;">
+                😐 Neytral
+              </label>
+              <label style="display:flex;align-items:center;gap:6px;cursor:pointer;padding:9px 14px;background:rgba(239,68,68,.1);border:2px solid rgba(239,68,68,.3);border-radius:10px;font-size:13px;">
+                <input type="radio" name="aiTone" value="negative" style="accent-color:#ef4444;">
+                👎 Salbiy
+              </label>
+            </div>
+          </div>
+        </div>
+        <div id="aiPreviewBox" style="display:none;margin-bottom:14px;">
+          <label style="font-size:13px;color:var(--muted);margin-bottom:8px;display:block;font-weight:500;">Generatsiya qilingan commentlar:</label>
+          <div id="aiPreviewList" style="max-height:250px;overflow-y:auto;display:flex;flex-direction:column;gap:6px;"></div>
+        </div>
+        <div style="display:flex;gap:10px;">
+          <button class="send-btn" style="background:#7c3aed;color:#fff;" onclick="generateAiComments()">
+            🤖 Commentlarni generatsiya qilish
+          </button>
+          <button class="send-btn" id="aiSendBtn" style="background:linear-gradient(135deg,#7c3aed,#e4405f);color:#fff;display:none;" onclick="sendAiComments()">
+            📸 Yuborish
+          </button>
+        </div>
+      </div>
+
+      <!-- WhatsApp Xabar -->
+      <div class="section">
+        <div class="section-header">
+          <div class="section-icon" style="background:rgba(37,211,102,.15);">💚</div>
+          <div>
+            <h2>WhatsApp Xabar</h2>
+            <p>WhatsApp orqali xabar yuborish</p>
+          </div>
+        </div>
+        <div class="bulk-info">⚡ Tanlangan qurilmalar: <b id="waDevCount">0</b></div>
+        <div class="form-row">
+          <div class="form-field">
+            <label>Qabul qiluvchi (ism)</label>
+            <input type="text" id="waRecipient" placeholder="Ali Karimov">
+          </div>
+          <div class="form-field">
+            <label>Xabar</label>
+            <input type="text" id="waMessage" placeholder="Xabar matni">
+          </div>
+        </div>
+        <button class="send-btn wa" onclick="sendWhatsAppMessage()">
+          💌 Yuborish
+        </button>
+      </div>
+
+      <!-- Telegram DM -->
+      <div class="section">
+        <div class="section-header">
+          <div class="section-icon" style="background:rgba(42,171,238,.1);">✉️</div>
+          <div>
+            <h2>Telegram Xabar</h2>
+            <p>Telegram orqali to'g'ridan to'g'ri xabar yuborish</p>
+          </div>
+        </div>
+        <div class="bulk-info">⚡ Tanlangan qurilmalar: <b id="tgMsgDevCount">0</b></div>
+        <div class="form-row">
+          <div class="form-field">
+            <label>Qabul qiluvchi (ism)</label>
+            <input type="text" id="tgRecipient" placeholder="Shukurulla">
+          </div>
+          <div class="form-field">
+            <label>Xabar matni</label>
+            <input type="text" id="tgMessage" placeholder="Salom!">
+          </div>
+        </div>
+        <button class="send-btn tg" onclick="sendTelegramMessage()">
+          ✈️ Yuborish
+        </button>
+      </div>
+
+      <!-- Buyruqlar tarixi -->
+      <div class="section">
+        <div class="section-header">
+          <div class="section-icon" style="background:rgba(148,163,184,.1);">📋</div>
+          <div>
+            <h2>Buyruqlar tarixi</h2>
+            <p>So'nggi 20 ta buyruqning holati</p>
+          </div>
+        </div>
+        <div id="historySelect" style="margin-bottom:12px;">
+          <select class="form-field" id="historyDevice" onchange="loadHistory()" style="padding:10px 14px;background:var(--bg);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:inherit;font-size:13px;width:100%;outline:none;">
+            <option value="">— Qurilma tanlang —</option>
+          </select>
+        </div>
+        <div class="history-list" id="commandHistory">
+          <p style="color:var(--muted);text-align:center;padding:20px;">Qurilma tanlanmadi</p>
+        </div>
+      </div>
+
+    </div>
+  </main>
+</div>
+
+<div id="toastContainer" class="toast-container"></div>
+
+<script src="/socket.io/socket.io.js"></script>
+<script src="/js/app.js"></script>
+</body>
+</html>
