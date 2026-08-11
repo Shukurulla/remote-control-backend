@@ -273,7 +273,7 @@ router.post('/ai-comment', authMiddleware, async (req, res) => {
         await cmd.save();
       }
 
-      results.push({ deviceId, success: true, comment: commentText, status: cmd.status });
+      results.push({ deviceId, success: true, comment: commentText, status: cmd.status, commandId: cmd._id.toString() });
     }
 
     console.log(`✅ AI Comment: ${results.filter(r => r.success).length}/${deviceIds.length} yuborildi`);
