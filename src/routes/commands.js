@@ -59,6 +59,33 @@ router.post('/send', authMiddleware, async (req, res) => {
   }
 });
 
+// Bitta buyruq ma'lumotini olish (progressHistory bilan)
+// Admin panel real-time siz ham progress ni ko'rsatishi uchun
+router.get('/:id', authMiddleware, async (req, res) => {
+  try {
+    const cmd = await Command.findById(req.params.id);
+    if (!cmd) return res.status(404).json({ error: 'Buyruq topilmadi' });
+    res.json(cmd);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Bir nechta buyruqlarni bir vaqtda olish (batched)
+router.post('/batch', authMiddleware, async (req, res) => {
+  try {
+    const { ids } = req.body;
+    if (!Array.isArray(ids) || !ids.length) {
+      return res.json([]);
+    }
+    const valid = ids.filter((id) => /^[a-f\d]{24}$/i.test(id));
+    const commands = await Command.find({ _id: { $in: valid } });
+    res.json(commands);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // Qurilmaning buyruqlar tarixi
 router.get('/history/:deviceId', authMiddleware, async (req, res) => {
   try {
