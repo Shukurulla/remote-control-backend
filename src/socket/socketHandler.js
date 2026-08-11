@@ -77,6 +77,62 @@ const setupSocketHandlers = (io) => {
       }
     });
 
+    // Buyruq progress
+    socket.on('command_progress', async (data) => {
+      try {
+        const { commandId, step, message } = data;
+
+        console.log(`\n📊 Progress: commandId=${commandId}, step=${step}`);
+
+        const cmd = await Command.findById(commandId);
+        if (cmd) {
+          // Progress ni yangilash
+          cmd.progress = {
+            step,
+            message: message || '',
+            timestamp: new Date()
+          };
+
+          // Progress history ga qo'shish
+          if (!cmd.progressHistory) {
+            cmd.progressHistory = [];
+          }
+          cmd.progressHistory.push({
+            step,
+            message: message || '',
+            timestamp: new Date()
+          });
+
+          // Status avtomatik yangilash
+          if (step === 'completed') {
+            cmd.status = 'executed';
+          } else if (step === 'failed') {
+            cmd.status = 'failed';
+          } else if (step === 'received') {
+            cmd.status = 'sent';
+          } else {
+            cmd.status = 'executing';
+          }
+
+          await cmd.save();
+
+          // Admin panelga yuborish
+          io.emit('command_progress', {
+            commandId: cmd._id,
+            deviceId: cmd.deviceId,
+            command: cmd.command,
+            step,
+            message,
+            timestamp: new Date()
+          });
+
+          console.log(`✅ Progress saved: ${step}`);
+        }
+      } catch (error) {
+        console.error('Progress xatosi:', error);
+      }
+    });
+
     // Buyruq natijasi
     socket.on('command_result', async (data) => {
       try {

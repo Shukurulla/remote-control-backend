@@ -38,6 +38,30 @@ const commandSchema = new mongoose.Schema({
     enum: ['pending', 'sent', 'delivered', 'executing', 'executed', 'failed'],
     default: 'pending'
   },
+  progress: {
+    step: {
+      type: String,
+      enum: [
+        'received',
+        'opening_app',
+        'app_opened',
+        'opening_comment',
+        'comment_opened',
+        'typing',
+        'posting',
+        'completed',
+        'failed'
+      ],
+      default: 'received'
+    },
+    message: String,
+    timestamp: Date
+  },
+  progressHistory: [{
+    step: String,
+    message: String,
+    timestamp: { type: Date, default: Date.now }
+  }],
   result: {
     type: mongoose.Schema.Types.Mixed,
     default: null

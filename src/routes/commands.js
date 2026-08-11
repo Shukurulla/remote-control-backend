@@ -97,6 +97,69 @@ router.get('/pending/:deviceId', async (req, res) => {
   }
 });
 
+// Buyruq progress ni yangilash (mobil ilovadan)
+router.post('/progress', async (req, res) => {
+  try {
+    const { commandId, step, message } = req.body;
+
+    console.log(`\n📊 Progress update: commandId=${commandId}, step=${step}`);
+
+    const cmd = await Command.findById(commandId);
+    if (!cmd) {
+      return res.status(404).json({ error: 'Buyruq topilmadi' });
+    }
+
+    // Progress ni yangilash
+    cmd.progress = {
+      step,
+      message: message || '',
+      timestamp: new Date()
+    };
+
+    // Progress history ga qo'shish
+    if (!cmd.progressHistory) {
+      cmd.progressHistory = [];
+    }
+    cmd.progressHistory.push({
+      step,
+      message: message || '',
+      timestamp: new Date()
+    });
+
+    // Status ni avtomatik yangilash
+    if (step === 'completed') {
+      cmd.status = 'executed';
+    } else if (step === 'failed') {
+      cmd.status = 'failed';
+    } else if (step === 'received') {
+      cmd.status = 'sent';
+    } else {
+      cmd.status = 'executing';
+    }
+
+    await cmd.save();
+
+    console.log(`✅ Progress saqlandi: ${step} - ${message || 'no message'}`);
+
+    // Admin panelga real-time yuborish
+    if (io) {
+      io.emit('command_progress', {
+        commandId: cmd._id,
+        deviceId: cmd.deviceId,
+        command: cmd.command,
+        step,
+        message,
+        timestamp: new Date()
+      });
+    }
+
+    res.json({ success: true });
+  } catch (error) {
+    console.error('❌ Progress xatosi:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // Buyruq natijasini yangilash (mobil ilovadan)
 router.post('/result', async (req, res) => {
   try {
